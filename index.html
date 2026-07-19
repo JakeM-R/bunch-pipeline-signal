@@ -173,7 +173,7 @@ function flagFor(id, benchVal){
 function updateOverall(){
   const vals = ['s1','s2','s3','s4'].map(id => (parseFloat(document.getElementById(id).value) || 0) / 100);
   const overall = vals.reduce((a, b) => a * b, 1) * 100;
-  const benchOverall = (BENCH.s1 * BENCH.s2 * BENCH.s3 * BENCH.s4) / 1e8;
+  const benchOverall = (BENCH.s1 * BENCH.s2 * BENCH.s3 * BENCH.s4) / 1e6;
   document.getElementById('overall').textContent = overall.toFixed(2) + '%';
   const diff = overall - benchOverall;
   const flagEl = document.getElementById('foverall');
