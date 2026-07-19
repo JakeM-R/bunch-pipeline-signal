@@ -29,7 +29,7 @@
   .wrap{max-width:1560px;margin:0 auto;}
   header{display:flex;align-items:center;gap:16px;margin-bottom:8px;justify-content:space-between;}
   .header-left{display:flex;align-items:center;gap:16px;}
-  .built{color:var(--text2);font-size:13px;}
+  .built{color:var(--text2);font-size:18px;font-weight:500;}
   .mark{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--blue);position:relative;flex:none;}
   .mark::after{content:"";position:absolute;inset:7px;border-radius:50%;border:2.5px solid var(--text);}
   header h1{font-size:30px;margin:0;font-weight:600;letter-spacing:-0.02em;}
@@ -73,6 +73,13 @@
   .bench{color:var(--text2);font-size:12px;margin-top:6px;}
   footer{margin-top:28px;color:var(--text2);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;}
   .loading{color:var(--text2);font-size:14px;padding:24px 0;}
+  .summary{
+    margin-top:16px;background:var(--blue-dim);border:1px solid rgba(76,107,255,0.3);
+    border-radius:14px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .summary-label{font-size:12.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+  .summary-val{font-size:36px;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+  .summary-right{text-align:right;}
   .retry-btn{
     margin-top:10px;background:var(--blue-dim);border:1px solid var(--blue);
     color:var(--blue);font-size:13px;padding:6px 14px;border-radius:8px;
@@ -128,6 +135,16 @@
           <div class="flag" id="f4"></div>
         </div>
       </div>
+      <div class="summary">
+        <div class="summary-left">
+          <div class="summary-label">Lead → Deal Won</div>
+          <div class="summary-val" id="overall">—</div>
+        </div>
+        <div class="summary-right">
+          <div class="bench">Benchmark ~0.87%</div>
+          <div class="flag" id="foverall"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -153,10 +170,24 @@ function flagFor(id, benchVal){
   flagEl.textContent = label;
 }
 
+function updateOverall(){
+  const vals = ['s1','s2','s3','s4'].map(id => (parseFloat(document.getElementById(id).value) || 0) / 100);
+  const overall = vals.reduce((a, b) => a * b, 1) * 100;
+  const benchOverall = (BENCH.s1 * BENCH.s2 * BENCH.s3 * BENCH.s4) / 1e8;
+  document.getElementById('overall').textContent = overall.toFixed(2) + '%';
+  const diff = overall - benchOverall;
+  const flagEl = document.getElementById('foverall');
+  if (diff <= -0.3) { flagEl.className = 'flag bad'; flagEl.textContent = `${Math.abs(diff).toFixed(2)}pt below benchmark`; }
+  else if (diff < 0) { flagEl.className = 'flag warn'; flagEl.textContent = `${Math.abs(diff).toFixed(2)}pt below benchmark`; }
+  else if (diff > 0) { flagEl.className = 'flag good'; flagEl.textContent = `${diff.toFixed(2)}pt above benchmark`; }
+  else { flagEl.className = 'flag good'; flagEl.textContent = 'On pace'; }
+}
+
 ['s1','s2','s3','s4'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => flagFor(id, BENCH[id]));
+  document.getElementById(id).addEventListener('input', () => { flagFor(id, BENCH[id]); updateOverall(); });
   flagFor(id, BENCH[id]);
 });
+updateOverall();
 
 function fmtDate(d){
   return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
