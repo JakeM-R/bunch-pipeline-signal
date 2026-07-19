@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pipeline signal & funnel health — for bunch</title>
+<style>
+  :root{
+    --bg:#0b0e1f;
+    --card:#1b1f3d;
+    --card2:#262a4d;
+    --border:rgba(255,255,255,0.08);
+    --text:#f2f3fa;
+    --text2:#9aa0c3;
+    --blue:#4c6bff;
+    --blue-dim:rgba(76,107,255,0.18);
+    --good:#5fd3a3;
+    --warn:#f0b45f;
+    --bad:#e2647a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 600px at 10% -10%, #141838 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter",Segoe UI,Helvetica,Arial,sans-serif;
+    padding:36px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+  .mark{width:30px;height:30px;border-radius:50%;border:2px solid var(--blue);position:relative;flex:none;}
+  .mark::after{content:"";position:absolute;inset:6px;border-radius:50%;border:2px solid var(--text);}
+  header h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.01em;}
+  .sub{color:var(--text2);font-size:13.5px;margin:6px 0 28px;}
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:940px){.grid{grid-template-columns:1fr;}}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px 24px;
+  }
+  .card h2{font-size:15px;margin:0 0 4px;font-weight:600;}
+  .card .desc{color:var(--text2);font-size:12.5px;margin:0 0 18px;}
+  .row{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:12px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .row:last-child{border-bottom:none;}
+  .dot{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--blue);margin-top:2px;flex:none;}
+  .row .name{font-size:13.5px;font-weight:500;}
+  .row .meta{color:var(--text2);font-size:11.5px;margin-top:3px;letter-spacing:.02em;text-transform:uppercase;}
+  .row a{color:var(--blue);text-decoration:none;font-size:11.5px;white-space:nowrap;margin-left:auto;}
+  .row a:hover{text-decoration:underline;}
+  .stagegrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}
+  .stage{background:var(--card2);border-radius:12px;padding:14px;}
+  .stage label{display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+  .stage input{
+    width:70px;background:transparent;border:none;border-bottom:1px solid var(--border);
+    color:var(--text);font-size:20px;font-weight:600;padding:2px 0;font-family:inherit;
+  }
+  .stage input:focus{outline:none;border-bottom-color:var(--blue);}
+  .ring{margin-top:10px;}
+  .flag{font-size:11px;margin-top:8px;padding:3px 8px;border-radius:20px;display:inline-block;}
+  .flag.good{background:rgba(95,211,163,.15);color:var(--good);}
+  .flag.warn{background:rgba(240,180,95,.15);color:var(--warn);}
+  .flag.bad{background:rgba(226,100,122,.15);color:var(--bad);}
+  .bench{color:var(--text2);font-size:10.5px;margin-top:4px;}
+  footer{margin-top:22px;color:var(--text2);font-size:11.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+  .loading{color:var(--text2);font-size:13px;padding:20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"></div>
+    <h1>Pipeline signal &amp; funnel health</h1>
+  </header>
+  <p class="sub">New fund formations worth chasing, and whether your funnel is converting at pace — built for bunch's commercial team.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>New fund signals</h2>
+      <p class="desc">Live from SEC EDGAR Form D filings, last 30 days — new VC/PE funds the moment they hit the public record.</p>
+      <div id="signals"><div class="loading">Loading live filings…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Funnel benchmark</h2>
+      <p class="desc">Enter your own stage conversion rates, see them against typical B2B SaaS/fintech benchmarks.</p>
+      <div class="stagegrid">
+        <div class="stage">
+          <label>Lead → MQL %</label>
+          <input type="number" id="s1" value="25" min="0" max="100" />
+          <div class="bench">Benchmark ~25%</div>
+          <div class="flag" id="f1"></div>
+        </div>
+        <div class="stage">
+          <label>MQL → SQL %</label>
+          <input type="number" id="s2" value="35" min="0" max="100" />
+          <div class="bench">Benchmark ~35%</div>
+          <div class="flag" id="f2"></div>
+        </div>
+        <div class="stage">
+          <label>SQL → Opp %</label>
+          <input type="number" id="s3" value="45" min="0" max="100" />
+          <div class="bench">Benchmark ~45%</div>
+          <div class="flag" id="f3"></div>
+        </div>
+        <div class="stage">
+          <label>Opp → Won %</label>
+          <input type="number" id="s4" value="22" min="0" max="100" />
+          <div class="bench">Benchmark ~22%</div>
+          <div class="flag" id="f4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Data: SEC EDGAR full-text search (Form D filings), live · funnel benchmarks are a public reference figure, not a live feed</span>
+    <span>Built for bunch</span>
+  </footer>
+</div>
+
+<script>
+const BENCH = { s1:25, s2:35, s3:45, s4:22 };
+
+function flagFor(id, benchVal){
+  const el = document.getElementById(id);
+  const flagEl = document.getElementById('f'+id.slice(1));
+  const val = parseFloat(el.value) || 0;
+  const diff = val - benchVal;
+  let cls = 'good', label = 'On pace';
+  if (diff <= -8) { cls = 'bad'; label = `${Math.abs(diff).toFixed(0)}pt below benchmark`; }
+  else if (diff < 0) { cls = 'warn'; label = `${Math.abs(diff).toFixed(0)}pt below benchmark`; }
+  else if (diff > 0) { cls = 'good'; label = `${diff.toFixed(0)}pt above benchmark`; }
+  flagEl.className = 'flag ' + cls;
+  flagEl.textContent = label;
+}
+
+['s1','s2','s3','s4'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => flagFor(id, BENCH[id]));
+  flagFor(id, BENCH[id]);
+});
+
+function fmtDate(d){
+  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+}
+
+async function loadSignals(){
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 30);
+  const fmt = d => d.toISOString().slice(0,10);
+  const startdt = fmt(start), enddt = fmt(end);
+
+  const queries = [
+    `q=%22venture+capital+fund%22&forms=D`,
+    `q=%22private+equity+fund%22&forms=D`
+  ];
+
+  try {
+    const results = await Promise.all(queries.map(q =>
+      fetch(`https://efts.sec.gov/LATEST/search-index?${q}&dateRange=custom&startdt=${startdt}&enddt=${enddt}`)
+        .then(r => r.json())
+    ));
+
+    const seen = new Set();
+    let items = [];
+    results.forEach(r => {
+      (r.hits && r.hits.hits ? r.hits.hits : []).forEach(h => {
+        const s = h._source;
+        if (!s || !s.adsh || seen.has(s.adsh)) return;
+        seen.add(s.adsh);
+        const nameMatch = (s.display_names && s.display_names[0]) || 'Unknown fund';
+        const cikMatch = nameMatch.match(/CIK\s*(\d+)/);
+        const cik = cikMatch ? parseInt(cikMatch[1], 10) : null;
+        const name = nameMatch.replace(/\s*\(CIK[^)]*\)/, '').trim();
+        const accession = s.adsh.replace(/-/g, '');
+        const url = cik
+          ? `https://www.sec.gov/Archives/edgar/data/${cik}/${accession}/`
+          : `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany`;
+        items.push({
+          name,
+          date: s.file_date,
+          location: (s.biz_locations && s.biz_locations[0]) || '',
+          form: s.form,
+          url
+        });
+      });
+    });
+
+    items.sort((a,b) => new Date(b.date) - new Date(a.date));
+    items = items.slice(0, 10);
+
+    const container = document.getElementById('signals');
+    if (!items.length){
+      container.innerHTML = `<div class="loading">No new VC/PE Form D filings matched in this window.</div>`;
+      return;
+    }
+    container.innerHTML = items.map(it => `
+      <div class="row">
+        <div class="dot"></div>
+        <div>
+          <div class="name">${it.name}</div>
+          <div class="meta">${it.form} · ${fmtDate(it.date)} · ${it.location}</div>
+        </div>
+        <a href="${it.url}" target="_blank" rel="noopener">View filing</a>
+      </div>
+    `).join('');
+  } catch (err){
+    document.getElementById('signals').innerHTML =
+      `<div class="loading">Couldn't load live filings (${err.message}). SEC EDGAR's full-text search API can be slow to respond on first load, try refreshing.</div>`;
+  }
+}
+
+loadSignals();
+</script>
+</body>
+</html>
