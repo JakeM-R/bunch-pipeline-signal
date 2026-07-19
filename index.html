@@ -27,7 +27,9 @@
     padding:52px 60px;
   }
   .wrap{max-width:1560px;margin:0 auto;}
-  header{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:8px;justify-content:space-between;}
+  .header-left{display:flex;align-items:center;gap:16px;}
+  .built{color:var(--text2);font-size:13px;}
   .mark{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--blue);position:relative;flex:none;}
   .mark::after{content:"";position:absolute;inset:7px;border-radius:50%;border:2.5px solid var(--text);}
   header h1{font-size:30px;margin:0;font-weight:600;letter-spacing:-0.02em;}
@@ -82,8 +84,11 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="mark"></div>
-    <h1>Pipeline signal &amp; funnel health</h1>
+    <div class="header-left">
+      <div class="mark"></div>
+      <h1>Pipeline signal &amp; funnel health</h1>
+    </div>
+    <span class="built">Built for bunch</span>
   </header>
   <p class="sub">New fund formations worth chasing, and whether your funnel is converting at pace — built for bunch's commercial team.</p>
 
@@ -128,7 +133,6 @@
 
   <footer>
     <span>Data: SEC EDGAR full-text search (Form D filings), live · funnel benchmarks are a public reference figure, not a live feed</span>
-    <span>Built for bunch</span>
   </footer>
 </div>
 
